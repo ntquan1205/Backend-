@@ -19,9 +19,19 @@
 ## Как запустить
 
 ```bash
-# команды по порядку: от git clone до работающего сервиса
-```
+git clone <https://github.com/ntquan1205/Backend-.git>
+cd <ПАПКА_ПРОЕКТА>
 
+Создать и активировать виртуальное окружение:
+python -m venv venv
+venv\Scripts\activate (Для Window)
+source venv/bin/activate (Для Macbook)
+
+Установить зависимости
+pip install -r requirements.txt
+
+Запустить сервис
+python manage.py runserver 8000
 Сервис работает на `http://localhost:8000`. Запросы для демонстрации лежат в `requests.http`.
 
 ## Эндпоинты
