@@ -18,7 +18,6 @@
 
 ## Как запустить
 
-```bash
 git clone <https://github.com/ntquan1205/Backend-.git>
 cd <ПАПКА_ПРОЕКТА>
 
