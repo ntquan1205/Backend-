@@ -4,6 +4,8 @@
   "id_field": "id",
   "missing_id": "999999",
   "list_key": null,
+  "text_field": "movie",
+  "search": { "param": "q", "field": "movie" },
   "create": {
     "movie": "Интерстеллар",
     "hall": "Зал 1",
@@ -13,5 +15,20 @@
   "update": {
     "hall": "Зал 2"
   },
-  "required_field": "movie"
+  "required_field": "movie",
+  "child": {
+    "resource": "tickets",
+    "create": { "seat_number": 1, "customer": "Нгуен" },
+    "parent_field": "session_id"
+  },
+  "rule": {
+    "description": "Одно место на сеанс нельзя продать дважды",
+    "parent": { "seats": 2 },
+    "setup": [
+      { "method": "POST", "path": "/api/sessions/{id}/tickets", "body": { "seat_number": 1, "customer": "Нгуен" } }
+    ],
+    "violate": { "method": "POST", "path": "/api/sessions/{id}/tickets", "body": { "seat_number": 1, "customer": "Петров" } },
+    "expect_status": 409
+  },
+  "stats_path": "/api/sessions/stats"
 }
