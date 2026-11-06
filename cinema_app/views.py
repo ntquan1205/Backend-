@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Session
+from .models import Session, Ticket
 
 SESSIONS_DB = []
 COUNTER = 1
@@ -102,3 +102,48 @@ class SessionDetailView(APIView):
         
         session.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class TicketListCreateView(APIView):
+    def get(self, request, session_id):
+        try:
+            session = Session.objects.get(pk=session_id)
+        except Session.DoesNotExist:
+            return Response({"error": "Session not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        tickets = Ticket.objects.filter(session=session)
+        data = [
+            {
+                "id": t.id,
+                "session_id": t.session.id,
+                "seat_number": t.seat_number,
+                "customer": t.customer
+            }
+            for t in tickets
+        ]
+        return Response(data, status=status.HTTP_200_OK)
+
+    def post(self, request, session_id):
+        try:
+            session = Session.objects.get(pk=session_id)
+        except Session.DoesNotExist:
+            return Response({"error": "Session not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        data = request.data
+        seat_number = data.get("seat_number")
+        customer = data.get("customer")
+
+        if seat_number is None or not customer:
+            return Response({"error": "Fields 'seat_number' and 'customer' are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        ticket = Ticket.objects.create(
+            session=session,
+            seat_number=seat_number,
+            customer=customer
+        )
+
+        return Response({
+            "id": ticket.id,
+            "session_id": session.id,
+            "seat_number": ticket.seat_number,
+            "customer": ticket.customer
+        }, status=status.HTTP_201_CREATED)

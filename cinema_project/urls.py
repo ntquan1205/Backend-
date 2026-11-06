@@ -1,9 +1,10 @@
 from django.contrib import admin
 from django.urls import path
-from cinema_app.views import HealthCheckView, SessionListCreateView, SessionDetailView
+from cinema_app.views import HealthCheckView, SessionListCreateView, SessionDetailView, TicketListCreateView
 
 urlpatterns = [
     path('health', HealthCheckView.as_view()),
     path('api/sessions', SessionListCreateView.as_view()),
     path('api/sessions/<int:pk>', SessionDetailView.as_view()),
+    path('api/sessions/<int:session_id>/tickets', TicketListCreateView.as_view()),
 ]
