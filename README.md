@@ -65,8 +65,6 @@ erDiagram
         int seat_number
         varchar customer
     }
-```
-
 ## Интерфейс
 
 <!-- С лабы 4: скриншот, например ![Интерфейс](docs/screenshot.png) -->
