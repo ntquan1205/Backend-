@@ -51,14 +51,19 @@ python manage.py runserver 8000
 
 ```mermaid
 erDiagram
-    parents ||--o{ children : "имеет"
-    parents {
+    sessions ||--o{ tickets : "имеет"
+    sessions {
         int id PK
-        varchar title
+        varchar movie
+        varchar hall
+        datetime date_time
+        int seats
     }
-    children {
+    tickets {
         int id PK
-        int parent_id FK
+        int session_id FK
+        int seat_number
+        varchar customer
     }
 ```
 
