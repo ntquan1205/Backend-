@@ -48,6 +48,8 @@ python manage.py runserver 8000
 
 <!-- С лабы 2. Блок mermaid GitHub рисует сам. -->
 
+## ER-диаграмма
+
 ```mermaid
 erDiagram
     sessions ||--o{ tickets : "имеет"
@@ -64,6 +66,7 @@ erDiagram
         int seat_number
         varchar customer
     }
+}
 ## Интерфейс
 
 <!-- С лабы 4: скриншот, например ![Интерфейс](docs/screenshot.png) -->
