@@ -30,5 +30,16 @@
     "violate": { "method": "POST", "path": "/api/sessions/{id}/tickets", "body": { "seat_number": 1, "customer": "Петров" } },
     "expect_status": 409
   },
-  "stats_path": "/api/sessions/stats"
+  "stats_path": "/api/sessions/stats",
+  "auth": {
+    "scheme": "basic",
+    "register_path": "/auth/register",
+    "login_path": "/auth/login",
+    "me_path": "/auth/me",
+    "login_field": "username",
+    "password_field": "password",
+    "token_field": "access_token",
+    "owner_field": "owner_id",
+    "admin": { "username": "admin", "password": "admin-test-pass" }
+  }
 }
