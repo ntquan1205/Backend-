@@ -23,7 +23,7 @@ class SessionListCreateView(APIView):
             }
             for s in sessions
         ]
-        return Response(SESSIONS_DB, status=status.HTTP_200_OK)
+        return Response(data, status=status.HTTP_200_OK) 
 
     def post(self, request):
         data = request.data
