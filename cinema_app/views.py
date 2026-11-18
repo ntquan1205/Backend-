@@ -2,6 +2,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Session, Ticket
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
+from rest_framework.authentication import BasicAuthentication
 
 SESSIONS_DB = []
 COUNTER = 1
@@ -9,6 +13,40 @@ COUNTER = 1
 class HealthCheckView(APIView):
     def get(self, request):
         return Response({"status": "ok"}, status=status.HTTP_200_OK)
+
+class RegisterView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        data = request.data
+        username = data.get("username")
+        password = data.get("password")
+
+        if not username or not password:
+            return Response({"error": "Username and password are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(username=username).exists():
+            return Response({"error": "User with this username already exists."}, status=status.HTTP_409_CONFLICT)
+
+        user = User.objects.create_user(username=username, password=password)
+
+        return Response({
+            "id": user.id,
+            "username": user.username
+        }, status=status.HTTP_201_CREATED)
+
+class MeView(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request):
+        if not request.user or not request.user.is_authenticated:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        return Response({
+            "id": request.user.id,
+            "username": request.user.username
+        }, status=status.HTTP_200_OK)
 
 class SessionListCreateView(APIView):
     def get(self, request):

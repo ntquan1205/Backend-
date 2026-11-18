@@ -1,6 +1,8 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class Session(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions', null=True, blank=True)
     movie = models.CharField(max_length=255)
     hall = models.CharField(max_length=100, default="Основной зал")
     date_time = models.CharField(max_length=100, default="2026-06-01T18:00:00Z")
