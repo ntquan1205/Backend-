@@ -49,6 +49,9 @@ class MeView(APIView):
         }, status=status.HTTP_200_OK)
 
 class SessionListCreateView(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     def get(self, request):
         sessions = Session.objects.all()
         data = [
@@ -57,20 +60,24 @@ class SessionListCreateView(APIView):
                 "movie": s.movie,
                 "hall": s.hall,
                 "date_time": s.date_time,
-                "seats": s.seats
+                "seats": s.seats,
+                "owner_id": s.owner.id if s.owner else None
             }
             for s in sessions
         ]
-        return Response(data, status=status.HTTP_200_OK) 
+        return Response(data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        if not request.user or not request.user.is_authenticated:
+            return Response({"error": "Authentication required."}, status=status.HTTP_401_UNAUTHORIZED)
+
         data = request.data
-        
         movie = data.get("movie")
         if not movie or not isinstance(movie, str) or movie.strip() == "":
-            return Response({"error": "Field 'movie' is required and cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
-
+            return Response({"error": "Field 'movie' is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
         session = Session.objects.create(
+            owner=request.user,
             movie=movie,
             hall=data.get("hall", "Основной зал"),
             date_time=data.get("date_time", "2026-06-01T18:00:00Z"),
@@ -82,10 +89,15 @@ class SessionListCreateView(APIView):
             "movie": session.movie,
             "hall": session.hall,
             "date_time": session.date_time,
-            "seats": session.seats
+            "seats": session.seats,
+            "owner_id": session.owner.id
         }, status=status.HTTP_201_CREATED)
 
+
 class SessionDetailView(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     def get_object(self, pk):
         try:
             return Session.objects.get(pk=pk)
@@ -101,21 +113,24 @@ class SessionDetailView(APIView):
             "movie": session.movie,
             "hall": session.hall,
             "date_time": session.date_time,
-            "seats": session.seats
+            "seats": session.seats,
+            "owner_id": session.owner.id if session.owner else None
         }, status=status.HTTP_200_OK)
 
     def patch(self, request, pk):
+        if not request.user or not request.user.is_authenticated:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
         session = self.get_object(pk)
         if not session:
             return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
-        
+
+        if session.owner != request.user:
+            return Response({"error": "Forbidden: you are not the owner of this session."}, status=status.HTTP_403_FORBIDDEN)
+
         data = request.data
         if "movie" in data:
-            movie = data.get("movie")
-            if not movie or not isinstance(movie, str) or movie.strip() == "":
-                return Response({"error": "Field 'movie' cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
-            session.movie = movie
-            
+            session.movie = data.get("movie")
         if "hall" in data:
             session.hall = data.get("hall")
         if "date_time" in data:
@@ -130,18 +145,28 @@ class SessionDetailView(APIView):
             "movie": session.movie,
             "hall": session.hall,
             "date_time": session.date_time,
-            "seats": session.seats
+            "seats": session.seats,
+            "owner_id": session.owner.id
         }, status=status.HTTP_200_OK)
 
     def delete(self, request, pk):
+        if not request.user or not request.user.is_authenticated:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
         session = self.get_object(pk)
         if not session:
             return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if session.owner != request.user:
+            return Response({"error": "Forbidden: you are not the owner of this session."}, status=status.HTTP_403_FORBIDDEN)
         
         session.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class TicketListCreateView(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly] 
+
     def get(self, request, session_id):
         try:
             session = Session.objects.get(pk=session_id)
@@ -161,6 +186,9 @@ class TicketListCreateView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
     def post(self, request, session_id):
+        if not request.user or not request.user.is_authenticated:
+            return Response({"error": "Authentication required."}, status=status.HTTP_401_UNAUTHORIZED)
+
         try:
             session = Session.objects.get(pk=session_id)
         except Session.DoesNotExist:
